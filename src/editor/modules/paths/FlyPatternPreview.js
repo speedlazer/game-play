@@ -25,7 +25,8 @@ export class FlyPatternPreview extends Component {
       (propChanged(prevProps, this.props, [
         "pattern",
         "showPoints",
-        "showPath"
+        "showPath",
+        "showHabitat"
       ]) &&
         this.state.craftyMounted) ||
       (this.props.pattern &&
@@ -34,7 +35,9 @@ export class FlyPatternPreview extends Component {
     ) {
       showFlyPattern(this.props.pattern.path, {
         showPoints: this.props.showPoints,
-        showPath: this.props.showPath
+        showPath: this.props.showPath,
+        showHabitat: this.props.showHabitat,
+        habitat: this.props.pattern.habitat
       });
     }
   }

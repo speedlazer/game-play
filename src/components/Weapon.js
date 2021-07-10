@@ -139,6 +139,10 @@ Crafty.c(Bullet, {
       Crafty.rectManager.overlap(obj, Crafty.viewport.rect())
     ) {
       obj.processDamage(this.bulletSettings.damage);
+      this.spawner.mainEntity.trigger("DealtDamage", {
+        damage: this.bulletSettings.damage,
+        target: obj
+      });
     }
     if (collisionConfig.state) {
       this.showState(collisionConfig.state);
@@ -457,6 +461,7 @@ const spawnItem = (
 
     spawn.attr({
       itemName,
+      spawner,
       difficulty: spawner.difficulty,
       x: position.x - spawn.w / 2,
       y: position.y - spawn.h / 2,

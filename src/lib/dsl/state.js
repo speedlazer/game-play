@@ -28,7 +28,7 @@ const getAwardText = () => {
 const stateFunctions = (dsl, state) => {
   const lives = (
     Crafty("HUDLives").get(0) ||
-    Crafty.e(`2D, HUDLives, UILayerDOM, Text, HUD, ${TweenPromise}`)
+    Crafty.e(`2D, HUDLives, UILayerDOM, Text, HUD, HUDTop, ${TweenPromise}`)
       .attr({ x: 20, y: -10, w: 100, alpha: 0 })
       .textColor("#FFFF00")
       .textAlign("left")
@@ -42,17 +42,39 @@ const stateFunctions = (dsl, state) => {
   const health =
     Crafty("HUDHealth").get(0) ||
     Crafty.e(
-      `2D, HUDHealth, UILayerWebGL, HUD, ${Health}, ${TweenPromise}`
+      `2D, HUDHealth, UILayerWebGL, HUD, HUDTop, ${Health}, ${TweenPromise}`
     ).attr({ x: 150, y: -10, w: 120, h: 5, alpha: 0, maxWidth: 120 });
 
   Crafty("HUDHealthBar").get(0) ||
-    Crafty.e(`2D, HUDHealthBar, UILayerWebGL, Color, HUD, ${TweenPromise}`)
+    Crafty.e(
+      `2D, HUDHealthBar, UILayerWebGL, Color, HUD, HUDTop, ${TweenPromise}`
+    )
       .attr({ x: 149, y: -11, w: 122, h: 7, z: -1, alpha: 0, baseAlpha: 0.6 })
-      .color("#000000");
+      .color("#202020");
+
+  const energy =
+    Crafty("HUDEnergy").get(0) ||
+    Crafty.e(`2D, HUDEnergy, UILayerWebGL, HUD, HUDTop, Color, ${TweenPromise}`)
+      .attr({
+        x: 150,
+        y: 0,
+        w: 0,
+        h: 5,
+        alpha: 0,
+        maxWidth: 120
+      })
+      .color("#4040dd");
+
+  Crafty("HUDEnergyBar").get(0) ||
+    Crafty.e(
+      `2D, HUDEnergyBar, UILayerWebGL, Color, HUD, HUDTop, ${TweenPromise}`
+    )
+      .attr({ x: 149, y: -1, w: 122, h: 7, z: -1, alpha: 0, baseAlpha: 0.6 })
+      .color("#202020");
 
   const score = (
     Crafty("HUDScore").get(0) ||
-    Crafty.e(`2D, HUDScore, UILayerDOM, Text, HUD, ${TweenPromise}`)
+    Crafty.e(`2D, HUDScore, UILayerDOM, Text, HUD, HUDTop, ${TweenPromise}`)
       .attr({ x: 800, y: -10, w: 220, alpha: 0, score: 0, displayScore: 0 })
       .textColor("#FFFF00")
       .textAlign("left")
@@ -79,7 +101,9 @@ const stateFunctions = (dsl, state) => {
 
   const multiplier = (
     Crafty("HUDMultiplier").get(0) ||
-    Crafty.e(`2D, HUDMultiplier, UILayerDOM, Text, HUD, ${TweenPromise}`)
+    Crafty.e(
+      `2D, HUDMultiplier, UILayerDOM, Text, HUD, HUDTop, ${TweenPromise}`
+    )
       .attr({ x: 800, y: 10, w: 220, alpha: 0 })
       .textColor("#FFFF00")
       .textAlign("left")
@@ -122,6 +146,99 @@ const stateFunctions = (dsl, state) => {
     setHealthbar: healthPerc => {
       health.attr({ health: healthPerc });
     },
+    setEnergybar: energyPerc => {
+      energy.attr({ w: energyPerc * energy.maxWidth });
+    },
+    showBuff: (slot, entity, buffName, key) => {
+      const item = Crafty(`BuffSlot${slot}`);
+      if (item.length > 0) {
+        item.destroy();
+      }
+
+      const icon = Crafty.e(
+        `2D, HUD, HUDBottom, WebGL, Color, BuffSlot${slot}, ${TweenPromise}`
+      ).attr({
+        w: 20,
+        h: 20,
+        x: 20 + slot * 30,
+        y: Crafty.viewport.height - 28,
+        z: 900,
+        alpha: state.hudShown === true ? 1 : 0
+      });
+
+      const updateColor = () => {
+        if (entity.canActivateBuff(buffName)) {
+          icon.color("#5F5");
+          return;
+        }
+        const status = entity.buffStatus(buffName);
+        if (status.activeLeft === 0 && status.cooldown === 0) {
+          icon.color("#333");
+          return;
+        }
+        if (status.activeLeft > 0) {
+          icon.color("#AA0");
+          return;
+        }
+        if (status.cooldown > 0) {
+          icon.color("#A10");
+          return;
+        }
+      };
+
+      updateColor();
+
+      entity.uniqueBind("EnergyUpdate", () => {
+        updateColor();
+      });
+      entity.uniqueBind("BuffActivated", name => {
+        if (name === buffName) {
+          updateColor();
+        }
+      });
+      entity.uniqueBind("BuffEnded", name => {
+        if (name === buffName) {
+          updateColor();
+        }
+      });
+      entity.uniqueBind("CooldownEnded", name => {
+        if (name === buffName) {
+          updateColor();
+        }
+      });
+
+      Crafty.e(`DOM, HUD, HUDBottom, 2D, Text, ${TweenPromise}`)
+        .attr({
+          w: 60,
+          h: 20,
+          x: 1 + 30 * slot,
+          y: Crafty.viewport.height - 11,
+          alpha: state.hudShown === true ? 1 : 0
+        })
+        .textColor("#111")
+        .textAlign("center")
+        .textFont({
+          size: "8px",
+          family: "Press Start 2P"
+        })
+        .text(`${key}`);
+
+      Crafty.e(`DOM, HUD, HUDBottom, 2D, Text, ${TweenPromise}`)
+        .attr({
+          w: 60,
+          h: 20,
+          x: 30 * slot,
+          y: Crafty.viewport.height - 10,
+          alpha: state.hudShown === true ? 1 : 0
+        })
+        .textColor("#eee")
+        .textAlign("center")
+        .textFont({
+          size: "8px",
+          family: "Press Start 2P"
+        })
+        .text(`${key}`);
+    },
     loseLife: () => {
       state.lives -= 1;
       if (state.lives < 0) {
@@ -149,7 +266,7 @@ const stateFunctions = (dsl, state) => {
       if (state.hudShown === true) return;
       state.hudShown = true;
       const results = [];
-      Crafty("HUD").each(function() {
+      Crafty("HUDTop").each(function() {
         if (this.tweenPromise) {
           results.push(
             this.tweenPromise(
@@ -162,15 +279,33 @@ const stateFunctions = (dsl, state) => {
           );
         }
       });
+      console.log("show HudBottom");
+      Crafty("HUDBottom").each(function() {
+        if (this.tweenPromise) {
+          results.push(
+            this.tweenPromise(
+              {
+                alpha: this.baseAlpha === undefined ? 1 : this.baseAlpha
+              },
+              500
+            )
+          );
+        }
+      });
       return Promise.all(results);
     },
     hideHUD: () => {
       if (state.hudShown !== true) return;
       state.hudShown = false;
       const results = [];
-      Crafty("HUD").each(function() {
+      Crafty("HUDTop").each(function() {
         if (this.tweenPromise) {
           results.push(this.tweenPromise({ alpha: 0, y: this.y - 20 }, 500));
+        }
+      });
+      Crafty("HUDBottom").each(function() {
+        if (this.tweenPromise) {
+          results.push(this.tweenPromise({ alpha: 0 }, 500));
         }
       });
       return Promise.all(results);

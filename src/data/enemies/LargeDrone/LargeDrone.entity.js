@@ -92,16 +92,10 @@ export default {
     },
     habitats: [
       {
-        name: "Ocean",
-        scenery: "City.Ocean",
-        scrollSpeed: { vx: -100, vy: 0 },
-        background: ["City.Sunrise", 1]
-      },
-      {
         name: "Bridge",
-        scenery: "City.Bridge",
+        scenery: "city.Bridge",
         scrollSpeed: { vx: 0, vy: 0 },
-        background: ["City.Sunrise", 3]
+        background: ["city.Sunrise", 3]
       }
     ]
   },
@@ -146,9 +140,9 @@ export default {
     habitats: [
       {
         name: "Ocean",
-        scenery: "City.Ocean",
+        scenery: "city.Ocean",
         scrollSpeed: { vx: -100, vy: 0 },
-        background: ["City.Sunrise", 1]
+        background: ["city.Sunrise", 1]
       }
     ]
   }

@@ -3,10 +3,10 @@ export default {
     spawnRhythm: {
       initialDelay: 1,
       burst: 1,
-      shotDelay: 120,
+      shotDelay: [120, 60],
       burstDelay: 1,
       spawns: [
-        ["bullet", { angleRange: { from: [0, -6], to: [1, 6], step: 3 } }],
+        ["bullet", { angleRange: { from: [0, -5], to: [1, 5], step: 3 } }],
         ["muzzleFlash", {}]
       ]
     },
@@ -70,11 +70,13 @@ export default {
       shotDelay: 3000,
       burstDelay: 1,
       shot: [
-        { state: "laserCharge", audio: "laser-charge", duration: 1500 },
+        { state: "laserCharge", audio: "laser-charge", duration: [1500, 750] },
         { state: "stopLaserCharge", duration: 300 },
         { spawn: true, duration: 100, audio: "laser-fire" }
       ],
-      spawns: [["laser", { angle: 180 }]]
+      spawns: [
+        ["laser", { angleRange: { from: [180, 175], to: [181, 186], step: 3 } }]
+      ]
     },
     spawnables: {
       laser: {

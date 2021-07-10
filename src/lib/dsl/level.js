@@ -24,6 +24,8 @@ const noise = new Noise(lookup());
 const MAX_X_OFFSET = 30;
 const MAX_Y_OFFSET = 15;
 
+const SCENERY_ACTIVE = true;
+
 const levelFunctions = state => ({
   trauma: { value: 0, time: 0, handler: null },
 
@@ -65,6 +67,7 @@ const levelFunctions = state => ({
     }
   },
   setScrollingSpeed: async (x, y, { speed = 50, instant = false } = {}) => {
+    if (!SCENERY_ACTIVE) return;
     const scenery = getOne("Scenery") || Crafty.e("Scenery, 2D");
     return instant
       ? scenery.setScrollVelocity({ vx: -x, vy: y })
@@ -91,8 +94,9 @@ const levelFunctions = state => ({
           Crafty.bind("GameLoop", f);
         });
   },
-  setAltitude: async (y, { speed = 50, instant = false } = {}) =>
-    instant
+  setAltitude: async (y, { speed = 50, instant = false } = {}) => {
+    if (!SCENERY_ACTIVE) return;
+    return instant
       ? setAltitude(y)
       : new Promise(resolve => {
           const altPSec = speed / 1000;
@@ -112,13 +116,16 @@ const levelFunctions = state => ({
           };
 
           Crafty.bind("GameLoop", f);
-        }),
+        });
+  },
   setScenery: async sceneryName => {
-    setScenery(sceneryName);
+    if (!SCENERY_ACTIVE) return;
+    return setScenery(sceneryName);
   },
   waitTillInScreen: (sceneryName, offset) =>
     getNotificationInScreen(sceneryName, offset),
   setBackground: async (backgroundName, checkpoint, limit) => {
+    if (!SCENERY_ACTIVE) return;
     setBackground(animations(backgroundName));
     if (limit !== undefined) {
       setBackgroundCheckpointLimit(limit);

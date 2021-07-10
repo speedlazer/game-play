@@ -1,5 +1,11 @@
 export default {
   "largeDrone.intro": {
+    habitat: {
+      scenery: "city.Bridge",
+      scrollSpeed: { vx: 0, vy: 0 },
+      background: ["city.Sunrise", 3],
+      entity: "LargeDrone"
+    },
     path: [
       { x: 1.1, y: 0.2 },
       { x: 0.8, y: 0.5 },

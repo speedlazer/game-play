@@ -21,6 +21,8 @@ const stage = document.getElementById("cr-stage");
 Crafty.init(1024, 576, stage); // PAL+
 Crafty.background("#000000");
 Crafty.timer.FPS(60);
+Crafty.timer.steptype("variable");
+
 Crafty.createLayer("UILayerDOM", "DOM", {
   scaleResponse: 0,
   yResponse: 0,

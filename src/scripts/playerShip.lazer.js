@@ -1,5 +1,6 @@
 import ShipControls from "src/components/player/ShipControls";
 import ShipCollision from "src/components/player/ShipCollision";
+import Buffs from "src/components/Buffs";
 import ControlScheme from "src/components/player/ControlScheme";
 
 export const playerShip = ({
@@ -12,6 +13,8 @@ export const playerShip = ({
   waitForEvent,
   allowDamage,
   setHealthbar,
+  setEnergybar,
+  showBuff,
   showState,
   setGameSpeed,
   addScreenTrauma,
@@ -20,6 +23,8 @@ export const playerShip = ({
   loseLife
 }) => {
   const maxHealth = 50;
+  const maxEnergy = 100;
+
   const player = Crafty("Player").get(0);
   const existingShip = existing && Crafty("PlayerShip").get(0);
   const ship =
@@ -31,16 +36,16 @@ export const playerShip = ({
       },
       defaultVelocity: 400
     });
+
   if (!player.invincible) {
     if (ship === existingShip) {
       await allowDamage(ship, {
         health: ship.health || maxHealth
       });
-      ship.unbind("HealthChange");
-      ship.unbind("Turn");
-      ship.unbind("Dead");
+      ship.energy = ship.energy || 0;
     } else {
       ship.health = ship.health || maxHealth;
+      ship.energy = 0;
       wait(2000).then(async () => {
         await allowDamage(ship, {});
       });
@@ -50,21 +55,81 @@ export const playerShip = ({
   if (ship.health < maxHealth * 0.5) {
     ship.displayFrame("damaged");
   }
+
   setHealthbar(ship.health / maxHealth);
+  setEnergybar(ship.energy / maxEnergy);
+
   if (turned) {
     await showState(ship, "turned");
   }
   showState(ship, "flying");
 
   // TODO: Refactor adding these components to the entity definition
-  ship.addComponent(ShipControls, ShipCollision);
+  ship.addComponent(ShipControls, ShipCollision, Buffs);
 
+  if (player.has(ControlScheme)) {
+    player.assignControls(ship);
+  }
+
+  ship.defineBuff("overdrive", {
+    cost: { energy: 35 },
+    duration: 3, // seconds
+    cooldown: 5 // seconds
+  });
+
+  showBuff(0, ship, "overdrive", ship.controlName("power1", true));
+
+  ship.uniqueBind("ButtonPressed", name => {
+    if (name === "fire") {
+      ship.showState("noLaserShooting");
+      ship.showState("shooting");
+    }
+    if (name === "heavy") {
+      if (!ship.hasLaser) return;
+      ship.showState("noShooting");
+      ship.showState("laserShooting");
+    }
+    if (name === "power1") {
+      ship.activateBuff("overdrive");
+      ship.trigger("EnergyUpdate");
+      setEnergybar(ship.energy / maxEnergy);
+    }
+  });
+
+  ship.uniqueBind("ButtonReleased", name => {
+    if (name === "fire") {
+      ship.showState("noShooting");
+    }
+    if (name === "heavy") {
+      ship.showState("noLaserShooting");
+    }
+  });
+  ship.uniqueBind("BuffActivated", name => {
+    if (name === "overdrive") {
+      ship.mainWeapon.difficulty = 0.5;
+      ship.laserWeapon.difficulty = 0.5;
+    }
+  });
+  ship.uniqueBind("BuffEnded", name => {
+    if (name === "overdrive") {
+      ship.mainWeapon.difficulty = 0.0;
+      ship.laserWeapon.difficulty = 0.0;
+    }
+  });
+
+  ship.uniqueBind("DealtDamage", ({ damage }) => {
+    if (damage[0].name === "Bullet" && !ship.buffActive("overdrive")) {
+      ship.energy = Math.min(maxEnergy, ship.energy + 1);
+      ship.trigger("EnergyUpdate");
+      setEnergybar(ship.energy / maxEnergy);
+    }
+  });
   ship.uniqueBind("HealthChange", newHealth => {
     if (newHealth < ship.health) {
       playerHit(newHealth - ship.health);
     }
     try {
-      setHealthbar(newHealth / 50);
+      setHealthbar(newHealth / maxHealth);
     } catch (e) {
       // player could be game over
     }
@@ -83,10 +148,6 @@ export const playerShip = ({
       showState(ship, "turning");
     }
   });
-
-  if (player.has(ControlScheme)) {
-    player.assignControls(ship);
-  }
 
   waitForEvent(ship, "Dead", async () => {
     ship.attr({ disableControls: true, vx: 0, vy: 0 });

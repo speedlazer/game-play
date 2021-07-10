@@ -124,7 +124,7 @@ Crafty.c(PauseMenu, {
     this.attr({
       x: (Crafty.viewport.width - menuWidth) / 2,
       w: menuWidth,
-      alpha: 0.6,
+      alpha: 0.8,
       z: 200
     }).color("#222222");
 

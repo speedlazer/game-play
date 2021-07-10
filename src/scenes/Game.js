@@ -14,6 +14,7 @@ Crafty.defineScene(
   async function({ start = null, tags = DEFAULT_TAGS } = {}) {
     let pauseMenu = null;
     setGameSpeed(1.0);
+
     Crafty.bind("GamePause", paused => {
       if (paused) {
         const player = Crafty("Player").get(0);
@@ -24,7 +25,7 @@ Crafty.defineScene(
           pauseMenu.showMenu(player);
         }
       } else {
-        pauseMenu.freeze();
+        pauseMenu && pauseMenu.freeze();
       }
     });
 

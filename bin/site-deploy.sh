@@ -21,6 +21,7 @@ mv * ..
 cd ..
 rm -r dist
 git add index.html assets game.*.js game.*.js.map
+rm *.LICENSE.txt
 
 # publish
 

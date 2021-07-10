@@ -5,6 +5,7 @@ import WebGLParticles from "src/components/WebGLParticles";
 const randM1to1 = () => Math.random() * 2 - 1;
 
 const spriteMap = {};
+const PARTICLES_ENABLED = true;
 
 const setParticleSprite = (entity, spriteName) => {
   const map = spriteMap[spriteName];
@@ -266,7 +267,7 @@ Crafty.c(ParticleEmitter, {
         reverse: emitterReverse = false,
         fidelity = "low",
         motionLocked = true
-      },
+      } = {},
       gravity = [0, 0],
       particle: {
         velocity = 80,
@@ -284,10 +285,11 @@ Crafty.c(ParticleEmitter, {
         startColorRandom = [0, 0, 0, 0],
         endColor = [0, 0, 0, 1],
         endColorRandom = [0, 0, 0, 0]
-      }
+      } = {}
     } = {},
     attachTo = null
   ) {
+    if (!PARTICLES_ENABLED) amount = 1;
     if (motionLocked) {
       this._deltaX = this._x;
       this._deltaY = this._y;
@@ -382,7 +384,8 @@ Crafty.c(ParticleEmitter, {
 
     if (
       this.timeFrame >= this.nextExpireCheck &&
-      this.startTime < this.particleSettings.emitterDuration
+      this.startTime < this.particleSettings.emitterDuration &&
+      PARTICLES_ENABLED
     ) {
       this.nextExpireCheck = this.timeFrame + this.nextExpireRatio;
       const warmingUp = this.startTime === -1;

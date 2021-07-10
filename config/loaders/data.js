@@ -38,9 +38,31 @@ const getRelativePath = (entry, dataRoot) => {
     .join(".");
   return relativePath;
 };
+
 const injectFolderPath = (folder, contents) => {
+  if (!contents) return;
   Object.values(contents).forEach(item => (item.diskFolder = folder));
 };
+
+const blockKeys = ["habitats", "habitat"];
+
+const scrubDevelopmentObject = object =>
+  Object.entries(object).reduce(
+    (acc, [key, value]) =>
+      blockKeys.includes(key) ? acc : { ...acc, [key]: value },
+    {}
+  );
+
+const scrubDevelopmentData = (contents, skip = false) =>
+  skip
+    ? contents
+    : Object.entries(contents).reduce(
+        (acc, [key, object]) =>
+          key.startsWith("test.")
+            ? acc
+            : { ...acc, [key]: scrubDevelopmentObject(object) },
+        {}
+      );
 
 // Based on:
 // https://v8.dev/blog/cost-of-javascript-2019#json
@@ -67,7 +89,7 @@ module.exports = async function(input) {
 
   this.addContextDependency(path.join("/"));
   const entries = await getFiles(path.join("/"));
-  const injectPaths = process.env.NODE_ENV === "development";
+  const developmentMode = process.env.NODE_ENV === "development";
 
   const allData = folders.reduce((acc, { name: entypoint, type, schema }) => {
     if (schema) {
@@ -87,21 +109,27 @@ module.exports = async function(input) {
         const file = require(entry);
         const fileContent = file.default;
         validateJSON(entry, fileContent, type);
-        if (injectPaths) {
+        if (developmentMode) {
           const relativePath = getRelativePath(entry, dataRoot);
           injectFolderPath(relativePath, fileContent);
         }
-        return { ...acc, ...fileContent };
+        return {
+          ...acc,
+          ...scrubDevelopmentData(fileContent, developmentMode)
+        };
       }
       if (entry.endsWith(`${type}.json`)) {
         const file = fs.readFileSync(entry, "utf8");
         const fileContent = JSON.parse(file);
         validateJSON(entry, fileContent, type);
-        if (injectPaths) {
+        if (developmentMode) {
           const relativePath = getRelativePath(entry, dataRoot);
           injectFolderPath(relativePath, fileContent);
         }
-        return { ...acc, ...fileContent };
+        return {
+          ...acc,
+          ...scrubDevelopmentData(fileContent, developmentMode)
+        };
       }
 
       return acc;

@@ -1,5 +1,5 @@
 export default {
-  dino: {
+  "test.dino": {
     attributes: {
       width: 200,
       height: 153

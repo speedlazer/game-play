@@ -148,20 +148,32 @@ Crafty.c(GamepadControls, {
           }
         }
       });
+    const gamepad = this._getGamepad();
+    const psController = [
+      "sony",
+      "dualshock",
+      "playstation",
+      "sixaxis",
+      "ps3",
+      "ps3",
+      "ps(r)"
+    ].some(name => gamepad.id.toLowerCase().indexOf(name) !== -1);
+    const xboxController = ["xbox", "x-box"].some(
+      name => gamepad.id.toLowerCase().indexOf(name) !== -1
+    );
+
+    console.log(
+      psController
+        ? "Playstation controller"
+        : xboxController
+        ? "XBox controller"
+        : `Generic controller ${gamepad.id}`
+    );
 
     ship.controlName = mapItem => {
       const gamepad = this._getGamepad();
       const button = this.controlMap[mapItem];
       if (gamepad.id) {
-        const psController = [
-          "sony",
-          "dualshock",
-          "playstation",
-          "sixaxis",
-          "ps3",
-          "ps3",
-          "ps(r)"
-        ].some(name => gamepad.id.toLowerCase().indexOf(name) !== -1);
         if (psController) {
           const buttons = [
             "✖ button",
@@ -185,9 +197,6 @@ Crafty.c(GamepadControls, {
           ];
           return buttons[button];
         }
-        const xboxController = ["xbox", "x-box"].some(
-          name => gamepad.id.toLowerCase().indexOf(name) !== -1
-        );
         if (xboxController) {
           const buttons = [
             "a button",
@@ -230,18 +239,11 @@ Crafty.c(GamepadControls, {
     };
 
     this.listenTo(ship, "GamepadKeyChange", e => {
-      if (e.button === this.controlMap.fire) {
-        ship.controlPrimary(e.pressed);
-      }
-      if (e.button === this.controlMap.switchWeapon) {
-        ship.controlSwitch(e.pressed);
-      }
-      if (e.button === this.controlMap.heavy) {
-        ship.controlSecondary(e.pressed);
-      }
-      if (e.button === this.controlMap.shield) {
-        ship.controlBlock(e.pressed);
-      }
+      Object.entries(this.controlMap).forEach(([action, button]) => {
+        if (button === e.button) {
+          ship.buttonPressed(action, e.pressed);
+        }
+      });
     });
   }
 });

@@ -22,7 +22,10 @@ import {
   setBackground,
   setBackgroundCheckpoint
 } from "src/components/Background";
-import { createEntity } from "src/components/EntityDefinition";
+import {
+  createEntity,
+  EntityDefinition
+} from "src/components/EntityDefinition";
 import { setScenery, setScrollVelocity } from "src/components/Scenery";
 import { getBezierPath } from "src/lib/BezierPath";
 import audio from "src/lib/audio";
@@ -53,6 +56,7 @@ export const mount = domElem => {
   if (!domElem) return;
   Crafty.init(SCREEN_WIDTH, SCREEN_HEIGHT, domElem);
   Crafty.background("#000000");
+  Crafty.timer.steptype("variable");
   Crafty.timer.FPS(60);
 
   let waitTime = 0;
@@ -426,28 +430,52 @@ const showBezier = pattern => {
   }
 };
 
-Crafty.defineScene("FlyPatternPreview", ({ pattern, showPath, showPoints }) => {
-  Crafty.trigger("EnterScene");
-  const vpw = Crafty.viewport.width;
-  const vph = Crafty.viewport.height;
-  showPoints &&
-    pattern.forEach(({ x, y }) => {
-      Crafty.e("2D, WebGL, Color, Waypoint")
-        .attr({ x: x * vpw, y: y * vph, w: 6, h: 6 })
-        .color("#FF0000");
-    });
+Crafty.defineScene(
+  "FlyPatternPreview",
+  ({ pattern, showPath, showPoints, habitat, showHabitat }) => {
+    Crafty.trigger("EnterScene");
+    const vpw = Crafty.viewport.width;
+    const vph = Crafty.viewport.height;
+    showPoints &&
+      pattern.forEach(({ x, y }) => {
+        Crafty.e("2D, WebGL, Color, Waypoint")
+          .attr({ x: x * vpw, y: y * vph, w: 6, h: 6 })
+          .color("#FF0000");
+      });
 
-  showPath && showBezier(pattern);
+    showPath && showBezier(pattern);
 
-  Crafty.e("2D, WebGL, Color, WayPointMotion")
-    .attr({ x: pattern[0].x * vpw, y: pattern[0].y * vph, w: 20, h: 20 })
-    .color("#0000FF")
-    .flyPattern(pattern, { velocity: 75, easing: "easeInOutQuad" });
-});
+    const entity =
+      habitat && habitat.entity && showHabitat
+        ? createEntity(habitat.entity)
+        : Crafty.e("2D, WebGL, Color")
+            .attr({ w: 20, h: 20 })
+            .color("#0000FF");
+    if (entity.has(EntityDefinition) && habitat.entityState) {
+      entity.showState(habitat.entityState);
+    }
+
+    entity
+      .addComponent("WayPointMotion")
+      .attr({ x: pattern[0].x * vpw, y: pattern[0].y * vph })
+      .flyPattern(pattern, { velocity: 75, easing: "easeInOutQuad" });
+
+    showHabitat && setHabitat(habitat);
+  }
+);
 
 let currentPattern = null;
-export const showFlyPattern = async (pattern, { showPoints, showPath }) => {
-  if (pattern === currentPattern && inScene("FlyPatternPreview")) {
+let currentlyShowingHabitat = true;
+export const showFlyPattern = async (
+  pattern,
+  { showPoints, showPath, habitat, showHabitat }
+) => {
+  await loadAssets();
+  if (
+    pattern === currentPattern &&
+    inScene("FlyPatternPreview") &&
+    showHabitat === currentlyShowingHabitat
+  ) {
     Crafty("Waypoint").destroy();
     Crafty("BezierPath").destroy();
 
@@ -465,8 +493,15 @@ export const showFlyPattern = async (pattern, { showPoints, showPath }) => {
     return;
   }
   currentPattern = pattern;
+  currentlyShowingHabitat = showHabitat;
 
-  Crafty.enterScene("FlyPatternPreview", { pattern, showPoints, showPath });
+  Crafty.enterScene("FlyPatternPreview", {
+    pattern,
+    showPoints,
+    showPath,
+    showHabitat,
+    habitat
+  });
 };
 
 Crafty.defineScene("AnimationPreview", ({ animation }) => {

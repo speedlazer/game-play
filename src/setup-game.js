@@ -18,6 +18,7 @@ export const setupControls = () => {
     down: [Crafty.keys.DOWN_ARROW, Crafty.keys.S],
     left: [Crafty.keys.LEFT_ARROW, Crafty.keys.A],
     right: [Crafty.keys.RIGHT_ARROW, Crafty.keys.D],
+    power1: [Crafty.keys["1"]],
     pause: [Crafty.keys.P]
   });
 
@@ -26,6 +27,7 @@ export const setupControls = () => {
     fire: 0,
     heavy: 1,
     switchWeapon: 2,
+    power1: 4,
     pause: 9,
     up: 12,
     down: 13,

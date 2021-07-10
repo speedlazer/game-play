@@ -1,5 +1,12 @@
 export default {
   "heli.pattern1": {
+    habitat: {
+      scenery: "city.Ocean",
+      scrollSpeed: { vx: -100, vy: 0 },
+      background: ["city.Sunrise", 2],
+      entity: "Helicopter",
+      entityState: "flying"
+    },
     path: [
       { x: 1.1, y: 0.5 },
       { x: 0.9, y: 0.4 },

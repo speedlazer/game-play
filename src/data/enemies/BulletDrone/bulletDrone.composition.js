@@ -7,9 +7,19 @@ export default {
     hitbox: [0, 20, 20, 0, 50, 5, 50, 32, 5, 30],
     sprites: [
       ["bulletDrone", { x: -7, key: "main" }],
-      ["helicopterGun", { x: 25, y: 15, z: -1, key: "gun", ro: [20, 10] }]
+      ["helicopterGun", { x: 25, y: 15, z: -1, key: "barrel", ro: [20, 10] }]
     ],
     attachHooks: [
+      [
+        "gun",
+        {
+          x: 25,
+          y: 32,
+          z: 1,
+          attachAlign: ["center", "left"],
+          attachTo: "barrel"
+        }
+      ],
       [
         "trail",
         {
@@ -52,6 +62,10 @@ export default {
       },
       hidden: {
         main: {
+          hidden: true,
+          alpha: 0
+        },
+        gun: {
           hidden: true,
           alpha: 0
         }

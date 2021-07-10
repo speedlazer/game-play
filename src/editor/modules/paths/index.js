@@ -9,7 +9,8 @@ import { paths } from "data";
 
 const DEFAULT_STATE = {
   showPoints: true,
-  showPath: true
+  showPath: true,
+  showHabitat: true
 };
 
 const STORAGE_KEY = "editor-flyPattern-settings";
@@ -41,7 +42,11 @@ class FlyPatterns extends Component {
     this.setState(s => ({ ...s, showPath: checked }));
   };
 
-  render({ pattern }, { showPoints, showPath }) {
+  updateShowHabitat = checked => {
+    this.setState(s => ({ ...s, showHabitat: checked }));
+  };
+
+  render({ pattern }, { showPoints, showPath, showHabitat }) {
     const activePattern = paths(pattern);
     storeState(this.state);
     return (
@@ -57,12 +62,16 @@ class FlyPatterns extends Component {
               <Setting checked={showPath} onCheck={this.updateShowPath}>
                 Show path
               </Setting>
+              <Setting checked={showHabitat} onCheck={this.updateShowHabitat}>
+                Show habitat
+              </Setting>
             </div>
             {activePattern && (
               <FlyPatternPreview
                 pattern={activePattern}
                 showPath={showPath}
                 showPoints={showPoints}
+                showHabitat={showHabitat}
               />
             )}
             {activePattern && <Source code={activePattern} />}
